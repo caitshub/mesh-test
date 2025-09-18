@@ -39,10 +39,10 @@
         container.appendChild(renderer.domElement);
         
         // Increase the intensity (4.0) to make it brighter.
-        const ambientLight = new THREE.AmbientLight(0xffffff, 4.0);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 3.0);
         scene.add(ambientLight);
 
-        // A very weak directional light to add subtle highlights and shape.
+        // A weak directional light to add subtle highlights and shape.
         const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
         dirLight.position.set(5, 10, 7.5);
         scene.add(dirLight);
@@ -102,4 +102,5 @@
     </script>
 </body>
 </html>
+
 
