@@ -32,11 +32,7 @@
         const container = document.getElementById('canvas-container');
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        
-        // --- QUALITY FIX ---
-        // This line makes the rendering sharp on high-resolution screens.
         renderer.setPixelRatio(window.devicePixelRatio);
-
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
@@ -78,14 +74,11 @@
                 const maxDim = Math.max(size.x, size.y, size.z);
                 const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
                 const fitWidthDistance = fitHeightDistance / camera.aspect;
-                
-                // --- ZOOM ADJUSTMENT ---
                 const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
 
                 camera.near = distance / 100;
                 camera.far = distance * 100;
                 camera.updateProjectionMatrix();
-
                 camera.position.z = distance;
                 
                 scene.add(model);
@@ -107,6 +100,32 @@
                 controls.autoRotate = true;
             }, 5000);
         });
+
+        //
+        // --- START: NEW RESPONSIVE RESIZE LOGIC ---
+        //
+        let lastWidth = container.clientWidth;
+        let lastHeight = container.clientHeight;
+
+        function handleResize() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Check for size changes every 250 milliseconds
+        setInterval(() => {
+            const newWidth = container.clientWidth;
+            const newHeight = container.clientHeight;
+            if (newWidth !== lastWidth || newHeight !== lastHeight) {
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+                handleResize();
+            }
+        }, 250);
+        //
+        // --- END: NEW RESPONSIVE RESIZE LOGIC ---
+        //
 
         // --- Animation Loop ---
         function animate() {
