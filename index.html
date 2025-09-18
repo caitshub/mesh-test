@@ -25,7 +25,6 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        // STEP 1: Import the DRACOLoader
         import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
         // --- Scene Setup ---
@@ -34,30 +33,34 @@
         const container = document.getElementById('canvas-container');
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping; // This makes lighting look more realistic
+        renderer.toneMappingExposure = 1.0; // You can adjust this value (e.g., 1.25 to make it brighter)
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
 
-        // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
-        directionalLight.position.set(1, 2, 3).normalize();
-        scene.add(directionalLight);
+        // --- IMPROVED LIGHTING ---
+        // A HemisphereLight provides soft, natural-looking ambient light.
+        // It simulates light from the sky (first color) and bounced light from the ground (second color).
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2.0); // Sky color, Ground color, Intensity
+        hemiLight.position.set(0, 200, 0);
+        scene.add(hemiLight);
+
+        // A DirectionalLight acts like the sun, casting shadows and creating highlights.
+        const dirLight = new THREE.DirectionalLight(0xffffff, 3.0); // Color, Intensity
+        dirLight.position.set(50, 200, 100); // Position it to cast light from an angle
+        scene.add(dirLight);
 
         // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
         // --- Model Loading ---
-        // STEP 2: Create instances of the loaders and connect them
         const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath('https://unpkg.com/three@0.155.0/examples/jsm/libs/draco/'); // Point to the decoder files
+        dracoLoader.setDecoderPath('https://unpkg.com/three@0.155.0/examples/jsm/libs/draco/');
         const gltfLoader = new GLTFLoader();
-        gltfLoader.setDRACOLoader(dracoLoader); // Tell the GLTF loader to use the Draco loader
+        gltfLoader.setDRACOLoader(dracoLoader);
 
-        // Now, use the configured loader
         gltfLoader.load(
             'https://raw.githubusercontent.com/caitshub/mesh-test/main/230129_hyperdir_example_cells_Edited2.glb',
             function (gltf) {
