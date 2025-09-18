@@ -32,6 +32,11 @@
         const container = document.getElementById('canvas-container');
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        // --- QUALITY FIX ---
+        // This line makes the rendering sharp on high-resolution screens.
+        renderer.setPixelRatio(window.devicePixelRatio);
+
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
@@ -75,7 +80,6 @@
                 const fitWidthDistance = fitHeightDistance / camera.aspect;
                 
                 // --- ZOOM ADJUSTMENT ---
-                // Changed the multiplier to 0.9 for a tighter initial frame.
                 const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
 
                 camera.near = distance / 100;
@@ -86,33 +90,28 @@
                 
                 scene.add(model);
                 
-                // Set initial auto-rotation
                 controls.autoRotate = true;
                 controls.autoRotateSpeed = 0.8;
             }
         );
 
-        // --- RESUME ROTATION LOGIC ---
-        let idleTimer = null; // Variable to hold our timer
-
-        // When user starts dragging, stop rotation and clear any existing timer
+        // --- Resume Rotation Logic ---
+        let idleTimer = null;
         controls.addEventListener('start', () => {
             clearTimeout(idleTimer);
             controls.autoRotate = false;
         });
-
-        // When user stops dragging, start a 5-second timer to resume rotation
         controls.addEventListener('end', () => {
-            clearTimeout(idleTimer); // Clear previous timer just in case
+            clearTimeout(idleTimer);
             idleTimer = setTimeout(() => {
                 controls.autoRotate = true;
-            }, 5000); // 5000 milliseconds = 5 seconds
+            }, 5000);
         });
 
         // --- Animation Loop ---
         function animate() {
             requestAnimationFrame(animate);
-            controls.update(); // Critically important for damping and auto-rotation
+            controls.update();
             renderer.render(scene, camera);
         }
         animate();
