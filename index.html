@@ -12,8 +12,11 @@
 <body>
     <div id="canvas-container"></div>
 
-    <!-- This is the only script tag we need. type="module" is the key. -->
+    <!-- The 'type="module"' script is the only one needed -->
     <script type="module">
+        //
+        // CORRECT: We are importing from the full URL, not a bare specifier.
+        //
         import * as THREE from 'https://unpkg.com/three@0.155.0/build/three.module.js';
         import { GLTFLoader } from 'https://unpkg.com/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
         import { OrbitControls } from 'https://unpkg.com/three@0.155.0/examples/jsm/controls/OrbitControls.js';
@@ -31,11 +34,11 @@
         // 2. Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionLight(0xffffff, 1.5);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
         directionalLight.position.set(5, 10, 7.5);
         scene.add(directionalLight);
 
-        // 3. Model Loading (with auto-centering)
+        // 3. Model Loading
         const loader = new GLTFLoader();
         let model;
         loader.load(
@@ -43,14 +46,12 @@
             function (gltf) {
                 model = gltf.scene;
 
-                // Auto-center the model
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center); // Center the model's pivot
+                model.position.sub(center);
                 
-                // Auto-scale and position camera
                 const size = box.getSize(new THREE.Vector3()).length();
-                camera.position.z = size; // Position camera based on model size
+                camera.position.z = size * 1.2; // Move camera back based on model size
 
                 scene.add(model);
             },
@@ -63,17 +64,14 @@
         // 4. Controls and Animation
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.autoRotate = true; // Use built-in auto-rotation
+        controls.autoRotate = true;
         controls.autoRotateSpeed = 0.8;
 
-        // Stop auto-rotation on user interaction
-        controls.addEventListener('start', function(){
-            controls.autoRotate = false;
-        });
+        controls.addEventListener('start', () => { controls.autoRotate = false; });
         
         function animate() {
             requestAnimationFrame(animate);
-            controls.update(); // Important for damping and auto-rotation
+            controls.update();
             renderer.render(scene, camera);
         }
         animate();
