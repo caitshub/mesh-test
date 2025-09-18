@@ -12,14 +12,28 @@
 <body>
     <div id="canvas-container"></div>
 
+    <!-- 
+      THIS IS THE FIX: The Import Map.
+      It tells the browser how to resolve "bare specifiers" like 'three'.
+      This must come BEFORE our main module script.
+    -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/"
+      }
+    }
+    </script>
+
+    <!-- 
+      Now this script will work, because the browser knows how to handle
+      the 'three' and 'three/addons/' imports inside the loader files.
+    -->
     <script type="module">
-        //
-        // These lines use the FULL URL. This is the correct code.
-        // If the browser runs this, the "bare specifier" error will be gone.
-        //
-        import * as THREE from 'https://unpkg.com/three@0.155.0/build/three.module.js';
-        import { GLTFLoader } from 'https://unpkg.com/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'https://unpkg.com/three@0.155.0/examples/jsm/controls/OrbitControls.js';
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // --- Scene Setup ---
         const scene = new THREE.Scene();
