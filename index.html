@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer - Final Debug</title>
+    <title>3D Model Viewer</title>
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
@@ -28,71 +28,71 @@
 
         // --- Scene Setup ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111); // Dark background
+        scene.background = new THREE.Color(0xeeeeee);
         const container = document.getElementById('canvas-container');
-        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 50000);
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
 
         // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
-        directionalLight.position.set(0, 500, 500);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
+        directionalLight.position.set(1, 2, 3).normalize();
         scene.add(directionalLight);
-
-        // --- VISUAL DEBUGGING HELPERS ---
-        // Add a grid to the scene to give a sense of scale and space.
-        const gridHelper = new THREE.GridHelper(1000, 20); // A grid 1000 units wide
-        scene.add(gridHelper);
 
         // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
-        camera.position.set(200, 200, 200); // Start the camera somewhere we can see the grid
-        controls.update(); // Required after manually changing camera position
+        controls.enableDamping = true;
 
         // --- Model Loading ---
         const loader = new GLTFLoader();
         loader.load(
-            'https://raw.githubusercontent.com/caitshub/mesh-test/main/23012_hyperdir_example_cells_Edited2.glb',
+            //
+            // THIS IS THE CORRECTED FILENAME
+            //
+            'https://raw.githubusercontent.com/caitshub/mesh-test/main/230129_hyperdir_example_cells_Edited2.glb',
             function (gltf) {
-                console.log("Model Loaded Successfully.");
                 const model = gltf.scene;
-
-                // 1. Measure the model
+                
+                // Auto-fitting logic
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
-
-                // 2. Log the measurements to the console. This is critical.
-                console.log("Model Center:", center);
-                console.log("Model Size:", size);
-
-                // 3. Move the model to the center of the scene
                 model.position.sub(center);
-                scene.add(model);
 
-                // 4. Position the camera to view the model
-                // This is a simpler, more robust framing method.
                 const maxDim = Math.max(size.x, size.y, size.z);
-                const cameraDistance = maxDim * 1.5;
-                camera.position.z = center.z + cameraDistance;
-                camera.position.x = center.x;
-                camera.position.y = center.y;
-                camera.lookAt(model.position); // Point the camera at the model
-                controls.update();
-                console.log("Camera repositioned to:", camera.position);
+                const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
+                const fitWidthDistance = fitHeightDistance / camera.aspect;
+                const distance = 1.5 * Math.max(fitHeightDistance, fitWidthDistance);
+
+                camera.near = distance / 100;
+                camera.far = distance * 100;
+                camera.updateProjectionMatrix();
+
+                camera.position.z = distance;
+                
+                scene.add(model);
+                
+                // Set up auto-rotation
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.8;
+                controls.addEventListener('start', () => { controls.autoRotate = false; });
             },
             undefined,
             function (error) {
-                console.error("CRITICAL: Model failed to load.", error);
+                // We should not see this error anymore
+                console.error("Model loading failed:", error);
             }
         );
 
         // --- Animation Loop ---
         function animate() {
             requestAnimationFrame(animate);
+            controls.update();
             renderer.render(scene, camera);
         }
         animate();
