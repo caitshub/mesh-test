@@ -27,6 +27,9 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
+        // --- Global Variables ---
+        let model; // Make the model accessible to all functions
+
         // --- Scene Setup ---
         const scene = new THREE.Scene();
         const container = document.getElementById('canvas-container');
@@ -38,7 +41,7 @@
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
 
-        // --- Three-Point Lighting Setup ---
+        // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
         const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
@@ -55,6 +58,28 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
+        function frameCamera() {
+            // If the model hasn't loaded yet, do nothing.
+            if (!model) return;
+
+            // Update renderer and camera aspect ratio
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            
+            // Re-measure the model and re-calculate the perfect camera distance
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
+            const fitWidthDistance = fitHeightDistance / camera.aspect;
+            const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
+
+            camera.near = distance / 100;
+            camera.far = distance * 100;
+            camera.position.z = distance;
+            camera.updateProjectionMatrix();
+        }
+
         // --- Model Loading ---
         const dracoLoader = new DRACOLoader();
         dracoLoader.setDecoderPath('https://unpkg.com/three@0.155.0/examples/jsm/libs/draco/');
@@ -64,24 +89,14 @@
         gltfLoader.load(
             'https://raw.githubusercontent.com/caitshub/mesh-test/main/230129_hyperdir_example_cells_Edited2.glb',
             function (gltf) {
-                const model = gltf.scene;
+                model = gltf.scene; // Assign the loaded model to our global variable
                 
-                const box = new THREE.Box3().setFromObject(model);
-                const size = box.getSize(new THREE.Vector3());
-                const center = box.getCenter(new THREE.Vector3());
+                const center = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
                 model.position.sub(center);
-
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
-                const fitWidthDistance = fitHeightDistance / camera.aspect;
-                const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
-
-                camera.near = distance / 100;
-                camera.far = distance * 100;
-                camera.updateProjectionMatrix();
-                camera.position.z = distance;
-                
                 scene.add(model);
+                
+                // Perform the initial framing
+                frameCamera(); 
                 
                 controls.autoRotate = true;
                 controls.autoRotateSpeed = 0.8;
@@ -101,31 +116,18 @@
             }, 5000);
         });
 
-        //
-        // --- START: NEW RESPONSIVE RESIZE LOGIC ---
-        //
+        // --- Polling for Resize ---
         let lastWidth = container.clientWidth;
         let lastHeight = container.clientHeight;
-
-        function handleResize() {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-
-        // Check for size changes every 250 milliseconds
         setInterval(() => {
             const newWidth = container.clientWidth;
             const newHeight = container.clientHeight;
             if (newWidth !== lastWidth || newHeight !== lastHeight) {
                 lastWidth = newWidth;
                 lastHeight = newHeight;
-                handleResize();
+                frameCamera(); // Call the complete framing logic on resize
             }
         }, 250);
-        //
-        // --- END: NEW RESPONSIVE RESIZE LOGIC ---
-        //
 
         // --- Animation Loop ---
         function animate() {
