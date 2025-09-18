@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer</title>
+    <title>3D Model Viewer - Debug</title>
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
@@ -12,11 +12,6 @@
 <body>
     <div id="canvas-container"></div>
 
-    <!-- 
-      THIS IS THE FIX: The Import Map.
-      It tells the browser how to resolve "bare specifiers" like 'three'.
-      This must come BEFORE our main module script.
-    -->
     <script type="importmap">
     {
       "imports": {
@@ -26,66 +21,68 @@
     }
     </script>
 
-    <!-- 
-      Now this script will work, because the browser knows how to handle
-      the 'three' and 'three/addons/' imports inside the loader files.
-    -->
     <script type="module">
+        console.log("Script starting...");
+
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // --- Scene Setup ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xeeeeee);
+        scene.background = new THREE.Color(0x333333); // Darker background for contrast
         const container = document.getElementById('canvas-container');
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
+        console.log("Three.js Scene Initialized.");
 
         // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
         directionalLight.position.set(5, 10, 7.5);
         scene.add(directionalLight);
 
+        // --- DEBUG CUBE ---
+        // We add a simple red cube to prove the scene is rendering.
+        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const debugCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        scene.add(debugCube);
+        console.log("Debug cube added to the scene.");
+
+        // Position camera to look at the cube
+        camera.position.z = 5;
+
         // --- Model Loading ---
+        console.log("Starting to load GLB model...");
         const loader = new GLTFLoader();
         loader.load(
             'https://raw.githubusercontent.com/caitshub/mesh-test/main/230129_hyperdir_example_cells_Edited2.glb',
             function (gltf) {
+                console.log("SUCCESS: GLB Model has been loaded.", gltf);
                 const model = gltf.scene;
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
-                const size = box.getSize(new THREE.Vector3()).length();
-                camera.position.z = size * 1.2;
                 scene.add(model);
+                // Hide the cube once the model is confirmed to have loaded.
+                // If the cube vanishes and the model doesn't appear, it's a model issue.
+                debugCube.visible = false;
+            },
+            undefined,
+            function (error) {
+                console.error("ERROR loading GLB model:", error);
             }
         );
 
         // --- Controls and Animation ---
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.8;
-        controls.addEventListener('start', () => { controls.autoRotate = false; });
         
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
             renderer.render(scene, camera);
         }
         animate();
-
-        // --- Handle window resizing ---
-        window.addEventListener('resize', () => {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
     </script>
 </body>
 </html>
