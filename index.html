@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer</title>
+    <title>3D Model Viewer - Final Diagnostic</title>
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
@@ -27,65 +27,50 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // --- Scene Setup ---
+        console.log("Scene setup started.");
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xeeeeee);
+        scene.background = new THREE.Color(0x111111); // Dark background
         const container = document.getElementById('canvas-container');
-        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 50000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
 
         // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
-        directionalLight.position.set(1, 2, 3).normalize();
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        directionalLight.position.set(0, 500, 500);
         scene.add(directionalLight);
+
+        // --- VISUAL DEBUGGING HELPERS ---
+        // Add a grid. If you see this, the scene is rendering.
+        const gridHelper = new THREE.GridHelper(1000, 20);
+        scene.add(gridHelper);
 
         // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+        camera.position.set(200, 200, 200); // Start camera where we can see the grid
+        controls.update();
 
         // --- Model Loading ---
         const loader = new GLTFLoader();
         loader.load(
-            //
-            // THIS IS THE CORRECTED FILENAME
-            //
             'https://raw.githubusercontent.com/caitshub/mesh-test/main/230129_hyperdir_example_cells_Edited2.glb',
             function (gltf) {
+                console.log("--- MODEL LOADED SUCCESSFULLY ---");
                 const model = gltf.scene;
                 
-                // Auto-fitting logic
+                // CRITICAL DIAGNOSTIC STEP: Measure the model
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
 
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
-                const fitWidthDistance = fitHeightDistance / camera.aspect;
-                const distance = 1.5 * Math.max(fitHeightDistance, fitWidthDistance);
-
-                camera.near = distance / 100;
-                camera.far = distance * 100;
-                camera.updateProjectionMatrix();
-
-                camera.position.z = distance;
+                // LOG THE RESULTS. This is the most important part.
+                console.log("MODEL CENTER:", center);
+                console.log("MODEL SIZE:", size);
                 
                 scene.add(model);
-                
-                // Set up auto-rotation
-                controls.autoRotate = true;
-                controls.autoRotateSpeed = 0.8;
-                controls.addEventListener('start', () => { controls.autoRotate = false; });
-            },
-            undefined,
-            function (error) {
-                // We should not see this error anymore
-                console.error("Model loading failed:", error);
             }
         );
 
