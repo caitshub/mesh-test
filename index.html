@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Model Viewer</title>
     <style>
-        /* CHANGE 1: Ensure the body itself is transparent */
         body, html { margin: 0; padding: 0; overflow: hidden; background-color: transparent; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
     </style>
@@ -30,14 +29,9 @@
 
         // --- Scene Setup ---
         const scene = new THREE.Scene();
-        // CHANGE 2: The line setting the scene background color has been REMOVED.
-        
         const container = document.getElementById('canvas-container');
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
-        
-        // CHANGE 3: Added 'alpha: true' to the renderer options.
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
@@ -79,7 +73,10 @@
                 const maxDim = Math.max(size.x, size.y, size.z);
                 const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
                 const fitWidthDistance = fitHeightDistance / camera.aspect;
-                const distance = 1.2 * Math.max(fitHeightDistance, fitWidthDistance);
+                
+                // --- ZOOM ADJUSTMENT ---
+                // Changed the multiplier to 0.9 for a tighter initial frame.
+                const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
 
                 camera.near = distance / 100;
                 camera.far = distance * 100;
@@ -89,16 +86,33 @@
                 
                 scene.add(model);
                 
+                // Set initial auto-rotation
                 controls.autoRotate = true;
                 controls.autoRotateSpeed = 0.8;
-                controls.addEventListener('start', () => { controls.autoRotate = false; });
             }
         );
+
+        // --- RESUME ROTATION LOGIC ---
+        let idleTimer = null; // Variable to hold our timer
+
+        // When user starts dragging, stop rotation and clear any existing timer
+        controls.addEventListener('start', () => {
+            clearTimeout(idleTimer);
+            controls.autoRotate = false;
+        });
+
+        // When user stops dragging, start a 5-second timer to resume rotation
+        controls.addEventListener('end', () => {
+            clearTimeout(idleTimer); // Clear previous timer just in case
+            idleTimer = setTimeout(() => {
+                controls.autoRotate = true;
+            }, 5000); // 5000 milliseconds = 5 seconds
+        });
 
         // --- Animation Loop ---
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
+            controls.update(); // Critically important for damping and auto-rotation
             renderer.render(scene, camera);
         }
         animate();
