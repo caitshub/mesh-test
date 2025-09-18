@@ -37,15 +37,26 @@
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
-        
-        // Increase the intensity (4.0) to make it brighter.
-        const ambientLight = new THREE.AmbientLight(0xffffff, 3.0);
+
+        // --- THREE-POINT LIGHTING SETUP ---
+        // A very weak ambient light to prevent pure black shadows.
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
-        // A weak directional light to add subtle highlights and shape.
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
-        dirLight.position.set(5, 10, 7.5);
-        scene.add(dirLight);
+        // 1. Key Light (main light source)
+        const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        keyLight.position.set(100, 100, 100); // Front-top-right
+        scene.add(keyLight);
+
+        // 2. Fill Light (softens shadows)
+        const fillLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        fillLight.position.set(-100, 50, 100); // Front-left
+        scene.add(fillLight);
+
+        // 3. Back Light (creates a rim highlight for depth)
+        const backLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        backLight.position.set(0, 100, -200).normalize(); // Directly behind
+        scene.add(backLight);
 
         // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -62,7 +73,6 @@
             function (gltf) {
                 const model = gltf.scene;
                 
-                // Auto-fitting logic
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
@@ -71,11 +81,7 @@
                 const maxDim = Math.max(size.x, size.y, size.z);
                 const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
                 const fitWidthDistance = fitHeightDistance / camera.aspect;
-                
-                // --- ZOOM ADJUSTMENT ---
-                // We changed the multiplier from 1.5 to 1.2 to start closer.
-                // Make this number smaller for more zoom, larger for less.
-                const distance = 1.2 * Math.max(fitHeightDistance, fitWidthDistance);
+                const distance = 1.2 * Math.max(fitHeightDistance, fitWidthDistance); // Starts zoomed in
 
                 camera.near = distance / 100;
                 camera.far = distance * 100;
@@ -85,7 +91,6 @@
                 
                 scene.add(model);
                 
-                // Set up auto-rotation
                 controls.autoRotate = true;
                 controls.autoRotateSpeed = 0.8;
                 controls.addEventListener('start', () => { controls.autoRotate = false; });
@@ -102,5 +107,3 @@
     </script>
 </body>
 </html>
-
-
