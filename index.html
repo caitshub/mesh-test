@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer - Debug</title>
+    <title>3D Model Viewer</title>
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
@@ -22,64 +22,85 @@
     </script>
 
     <script type="module">
-        console.log("Script starting...");
-
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // --- Scene Setup ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x333333); // Darker background for contrast
+        scene.background = new THREE.Color(0xeeeeee);
         const container = document.getElementById('canvas-container');
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.toneMapping = THREE.ACESFilmicToneMapping; // Improves lighting quality
+        renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
-        console.log("Three.js Scene Initialized.");
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        directionalLight.position.set(5, 10, 7.5);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0); // A bit stronger
+        directionalLight.position.set(1, 2, 3);
         scene.add(directionalLight);
 
-        // --- DEBUG CUBE ---
-        // We add a simple red cube to prove the scene is rendering.
-        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-        const debugCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        scene.add(debugCube);
-        console.log("Debug cube added to the scene.");
-
-        // Position camera to look at the cube
-        camera.position.z = 5;
+        // --- Controls ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
 
         // --- Model Loading ---
-        console.log("Starting to load GLB model...");
         const loader = new GLTFLoader();
         loader.load(
             'https://raw.githubusercontent.com/caitshub/mesh-test/main/230129_hyperdir_example_cells_Edited2.glb',
             function (gltf) {
-                console.log("SUCCESS: GLB Model has been loaded.", gltf);
                 const model = gltf.scene;
+
+                //
+                // START: BULLETPROOF AUTO-FITTING CODE
+                //
+                
+                // 1. Create a bounding box around the model to measure it
+                const box = new THREE.Box3().setFromObject(model);
+                
+                // 2. Get the dimensions (width, height, depth) and center of the box
+                const size = box.getSize(new THREE.Vector3());
+                const center = box.getCenter(new THREE.Vector3());
+
+                // 3. Move the model so its center is at the scene's origin (0,0,0)
+                model.position.sub(center);
+
+                // 4. Calculate the diagonal size of the box to determine a good camera distance
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
+                const fitWidthDistance = fitHeightDistance / camera.aspect;
+                const distance = 1.5 * Math.max(fitHeightDistance, fitWidthDistance);
+
+                // 5. Update camera's clipping planes based on the model's size
+                camera.near = distance / 100;
+                camera.far = distance * 100;
+                camera.updateProjectionMatrix();
+
+                // 6. Move the camera to the calculated distance and point it at the model's new center
+                camera.position.z = distance;
+                controls.target.copy(center); // Should be (0,0,0) now
+                
+                //
+                // END: BULLETPROOF AUTO-FITTING CODE
+                //
+                
                 scene.add(model);
-                // Hide the cube once the model is confirmed to have loaded.
-                // If the cube vanishes and the model doesn't appear, it's a model issue.
-                debugCube.visible = false;
-            },
-            undefined,
-            function (error) {
-                console.error("ERROR loading GLB model:", error);
+                
+                // Set up auto-rotation
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.8;
+                controls.addEventListener('start', () => { controls.autoRotate = false; });
             }
         );
 
-        // --- Controls and Animation ---
-        const controls = new OrbitControls(camera, renderer.domElement);
-        
+        // --- Animation Loop ---
         function animate() {
             requestAnimationFrame(animate);
+            controls.update(); // Important for damping and auto-rotation
             renderer.render(scene, camera);
         }
         animate();
