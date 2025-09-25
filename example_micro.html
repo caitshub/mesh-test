@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>example_micro</title>
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; background-color: transparent; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/"
+      }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+        // --- Global Variables ---
+        let model;
+
+        // --- Scene Setup ---
+        const scene = new THREE.Scene();
+        const container = document.getElementById('canvas-container');
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 10000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        keyLight.position.set(100, 100, 100);
+        scene.add(keyLight);
+        const fillLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        fillLight.position.set(-100, 50, 100);
+        scene.add(fillLight);
+        const backLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        backLight.position.set(0, 100, -200).normalize();
+        scene.add(backLight);
+
+        // --- Controls ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // --- Comprehensive Resize & Frame Logic ---
+        function frameCamera() {
+            if (!model) return;
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
+            const fitWidthDistance = fitHeightDistance / camera.aspect;
+            const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
+            camera.near = distance / 100;
+            camera.far = distance * 100;
+            camera.position.z = distance;
+            camera.updateProjectionMatrix();
+        }
+
+        // --- Model Loading ---
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://unpkg.com/three@0.155.0/examples/jsm/libs/draco/');
+        const gltfLoader = new GLTFLoader();
+        gltfLoader.setDRACOLoader(dracoLoader);
+
+        gltfLoader.load(
+            // --- CHANGE THIS LINE ---
+            'https://raw.githubusercontent.com/caitshub/mesh-test/main/example_micro.glb',
+            function (gltf) {
+                model = gltf.scene;
+                const center = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
+                model.position.sub(center);
+                scene.add(model);
+                frameCamera();
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.8;
+            }
+        );
+
+        // --- Resume Rotation & Resize Logic ---
+        let idleTimer = null;
+        controls.addEventListener('start', () => { clearTimeout(idleTimer); controls.autoRotate = false; });
+        controls.addEventListener('end', () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { controls.autoRotate = true; }, 5000); });
+        let lastWidth = container.clientWidth;
+        let lastHeight = container.clientHeight;
+        setInterval(() => {
+            const newWidth = container.clientWidth;
+            const newHeight = container.clientHeight;
+            if (newWidth !== lastWidth || newHeight !== lastHeight) {
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+                frameCamera();
+            }
+        }, 250);
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
