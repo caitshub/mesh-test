@@ -83,7 +83,7 @@
 
         gltfLoader.load(
             // --- CHANGE THIS LINE ---
-            'https://raw.githubusercontent.com/caitshub/mesh-test/main/250922_msn_example.glb',
+            'https://raw.githubusercontent.com/caitshub/mesh-test/main/example_MSNonlyGPi.glb',
             function (gltf) {
                 model = gltf.scene;
                 const center = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
@@ -121,3 +121,4 @@
     </script>
 </body>
 </html>
+
