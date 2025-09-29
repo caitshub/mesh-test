@@ -58,37 +58,24 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        //
-        // --- START: ROBUST RESIZE & FRAME LOGIC ---
-        //
+        // --- Comprehensive Resize & Frame Logic ---
         function frameCamera() {
-            if (!model) return; // Exit if model isn't loaded
-
+            if (!model) return;
+            
+            // Re-measure and re-calculate everything
+            camera.aspect = container.clientWidth / container.clientHeight;
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
-
-            // DEFENSIVE CHECK: If size is zero, exit to prevent errors.
-            if (size.x === 0 || size.y === 0 || size.z === 0) {
-                return;
-            }
-            
-            camera.aspect = container.clientWidth / container.clientHeight;
-            
             const maxDim = Math.max(size.x, size.y, size.z);
             const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
             const fitWidthDistance = fitHeightDistance / camera.aspect;
             const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
-
             camera.near = distance / 100;
             camera.far = distance * 100;
             camera.position.z = distance;
-            
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
-        //
-        // --- END: ROBUST RESIZE & FRAME LOGIC ---
-        //
 
         // --- Model Loading ---
         const dracoLoader = new DRACOLoader();
@@ -104,21 +91,27 @@
             const center = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
             model.position.sub(center);
             scene.add(model);
-            frameCamera();
+            frameCamera(); // Perform initial framing
             controls.autoRotate = true;
             controls.autoRotateSpeed = 0.8;
         });
 
-        // --- Resume Rotation & Resize Logic ---
+        // --- Resume Rotation Logic ---
         let idleTimer = null;
         controls.addEventListener('start', () => { clearTimeout(idleTimer); controls.autoRotate = false; });
         controls.addEventListener('end', () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { controls.autoRotate = true; }, 5000); });
         
-        // Use a ResizeObserver for more reliable resize detection
+        //
+        // --- START: NEW RESIZEOBSERVER LOGIC ---
+        // This is the robust solution for detecting size changes.
+        //
         const resizeObserver = new ResizeObserver(() => {
-            frameCamera();
+            frameCamera(); // Call our complete framing logic on any size change.
         });
-        resizeObserver.observe(container);
+        resizeObserver.observe(container); // Tell the observer to watch our main container.
+        //
+        // --- END: NEW RESIZEOBSERVER LOGIC ---
+        //
 
         // --- Animation Loop ---
         function animate() {
