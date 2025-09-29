@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>example_TAN</title>
+    <title>3D Model Viewer</title>
     <style>
         body, html { margin: 0; padding: 0; overflow: hidden; background-color: transparent; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
@@ -58,22 +58,37 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        // --- Comprehensive Resize & Frame Logic ---
+        //
+        // --- START: ROBUST RESIZE & FRAME LOGIC ---
+        //
         function frameCamera() {
-            if (!model) return;
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            camera.aspect = container.clientWidth / container.clientHeight;
+            if (!model) return; // Exit if model isn't loaded
+
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
+
+            // DEFENSIVE CHECK: If size is zero, exit to prevent errors.
+            if (size.x === 0 || size.y === 0 || size.z === 0) {
+                return;
+            }
+            
+            camera.aspect = container.clientWidth / container.clientHeight;
+            
             const maxDim = Math.max(size.x, size.y, size.z);
             const fitHeightDistance = maxDim / (2 * Math.atan(Math.PI * camera.fov / 360));
             const fitWidthDistance = fitHeightDistance / camera.aspect;
             const distance = 0.9 * Math.max(fitHeightDistance, fitWidthDistance);
+
             camera.near = distance / 100;
             camera.far = distance * 100;
             camera.position.z = distance;
+            
             camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
         }
+        //
+        // --- END: ROBUST RESIZE & FRAME LOGIC ---
+        //
 
         // --- Model Loading ---
         const dracoLoader = new DRACOLoader();
@@ -81,35 +96,29 @@
         const gltfLoader = new GLTFLoader();
         gltfLoader.setDRACOLoader(dracoLoader);
 
-        gltfLoader.load(
-            // --- CHANGE THIS LINE ---
-            'https://raw.githubusercontent.com/caitshub/mesh-test/main/example_TAN.glb',
-            function (gltf) {
-                model = gltf.scene;
-                const center = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
-                model.position.sub(center);
-                scene.add(model);
-                frameCamera();
-                controls.autoRotate = true;
-                controls.autoRotateSpeed = 0.8;
-            }
-        );
+        // --- IMPORTANT: Remember to change this URL for each viewer file ---
+        const modelUrl = 'https://raw.githubusercontent.com/caitshub/mesh-test/main/example_TAN.glb';
+
+        gltfLoader.load(modelUrl, function (gltf) {
+            model = gltf.scene;
+            const center = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
+            model.position.sub(center);
+            scene.add(model);
+            frameCamera();
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.8;
+        });
 
         // --- Resume Rotation & Resize Logic ---
         let idleTimer = null;
         controls.addEventListener('start', () => { clearTimeout(idleTimer); controls.autoRotate = false; });
         controls.addEventListener('end', () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { controls.autoRotate = true; }, 5000); });
-        let lastWidth = container.clientWidth;
-        let lastHeight = container.clientHeight;
-        setInterval(() => {
-            const newWidth = container.clientWidth;
-            const newHeight = container.clientHeight;
-            if (newWidth !== lastWidth || newHeight !== lastHeight) {
-                lastWidth = newWidth;
-                lastHeight = newHeight;
-                frameCamera();
-            }
-        }, 250);
+        
+        // Use a ResizeObserver for more reliable resize detection
+        const resizeObserver = new ResizeObserver(() => {
+            frameCamera();
+        });
+        resizeObserver.observe(container);
 
         // --- Animation Loop ---
         function animate() {
