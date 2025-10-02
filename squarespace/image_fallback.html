@@ -1,6 +1,7 @@
 <style>
   .viewer-parent-block {
-    height: 600px !important; 
+    /* can adjust */
+    height: 500px !important; 
     position: relative;
     width: 100%;
   }
@@ -25,14 +26,14 @@
   /* --- MOBILE --- */
   @media (max-width: 768px) {
     .viewer-parent-block {
-      /* Adjust mobile height to fit the image aspect ratio */
-      height: 400px !important; 
+      /* Adjust */
+      height: 500px !important; 
     }
     .desktop-viewer-iframe {
       display: none; /* HIDE 3D model */
     }
     .mobile-fallback-image {
-      display: block; /* SHOW image */
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: contain;
@@ -41,7 +42,6 @@
 </style>
 
 <div class="viewer-parent-block">
-
   <!-- The lightweight image for mobile -->
   <img 
     class="mobile-fallback-image"
@@ -51,7 +51,7 @@
   <!-- model iframe for desktop -->
   <iframe 
     class="desktop-viewer-iframe"
-    src="https://caitshub.github.io/mesh-test/YOUR_VIEWER_HTML_FILE.html" 
+    src="https://caitshub.github.io/mesh-test/cell_meshes/example_CHANGETHIS.html" 
     allowtransparency="true">
   </iframe>
 
