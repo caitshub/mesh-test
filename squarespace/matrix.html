@@ -337,6 +337,22 @@
 <script>
     // Data for each lightbox popup. Only cells with an entry here will be interactive.
     const lightboxData = {
+        'cell-GPe-GPi': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
+        'cell-GPi-STN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
         'cell-HVC-MSN': {
             img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/be7d2191-78e3-47d5-8587-7ec8da2d88e0/250825_hvc_full_100%C2%B5m_v2.png?content-type=image%2Fpng',
             img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/23faabb8-2701-4a0d-a256-f989c23def3e/250825_hvc_msn_syn_1%C2%B5m.png?content-type=image%2Fpng',
@@ -347,6 +363,14 @@
             captionBottomMiddle: 'This connection is vital for motor sequence learning. The images show morphological details from different microscopy techniques.',
             captionBottomRight: 'Postsynaptic Dendrite'
         },
+        'cell-HVC-STN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
         'cell-LMAN-MSN': {
             img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
             img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
@@ -355,7 +379,38 @@
             captionTop: 'LMAN -> MSN Connection',
             captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
         },
-        // Add all other interactive cell data here.
+        'cell-LMAN-STN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
+        'cell-MSN-GPe': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
+        'cell-MSN-GPi': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
+        'cell-STN-GPi': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
         // If a cell's 'data-target' is NOT in this object, it will be non-interactive.
     };
 
