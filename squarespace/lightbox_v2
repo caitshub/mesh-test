@@ -1,0 +1,155 @@
+/* --- DEFAULT LIGHTBOX STATE (HIDDEN) --- */
+.new-lightbox {
+  display: flex;
+  position: fixed;
+  z-index: 999999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  align-items: center;
+  justify-content: center;
+  padding: 2vw;
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+/* --- VISIBLE STATE (TOGGLED WITH JS) --- */
+.new-lightbox.lightbox-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --- MAIN CONTENT WRAPPER --- */
+.new-lightbox .new-lightbox-content {
+  width: 100%;
+  height: auto; /* Allow height to be determined by content */
+  max-width: 1200px;
+  max-height: 90vh; /* Use viewport height to keep it on screen */
+  display: grid;
+  /* THE KEY FIX: Rows are now sized by their content, not forced to stretch. */
+  grid-template-rows: auto auto auto; 
+  gap: 15px;
+  position: relative;
+  background-color: rgba(231, 231, 231, 1);
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* Add scroll if content is too tall */
+}
+
+/* --- CLOSE BUTTON --- */
+.new-lightbox .new-close-button {
+  position: absolute;
+  top: 0px; right: 0px;
+  color: #fff;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1100;
+}
+
+/* --- ROW 1: TOP CAPTION --- */
+.new-lightbox .caption-top {
+  grid-row: 1;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 10px;
+  color: #000;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Urbanist";
+  font-weight: bold;
+  font-size: 1.3em;
+}
+
+/* --- ROW 2: IMAGE GRID CONTAINER --- */
+.new-lightbox .image-grid-container {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+  min-height: 0;
+  overflow: hidden;
+  /* Align items to the top instead of stretching them */
+  align-items: start; 
+}
+
+/* --- WRAPPER FOR THE TWO STACKED IMAGES --- */
+.new-lightbox .img-wrapper-stacked {
+  display: grid;
+  grid-template-rows: auto auto; /* Rows shrink to fit content */
+  gap: 15px;
+  min-height: 0; 
+}
+
+/* --- STYLING FOR ALL INDIVIDUAL IMAGE WRAPPERS --- */
+.new-lightbox .img-wrapper {
+  /* THE FRAME: Restore the background to create the visual grid cell */
+  background-color: rgba(0,0,0,0.05); 
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+  /* THE CENTERING: Use Flexbox to center the image within the frame */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+/* --- STYLING FOR THE IMAGES THEMSELVES --- */
+.new-lightbox .img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Prevents image distortion */
+  max-width: 100%; /* Ensure image scales down correctly */
+  max-height: 100%;
+}
+
+/* --- ROW 3: BOTTOM CAPTIONS --- */
+.new-lightbox .captions-bottom {
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.new-lightbox .captions-bottom > div {
+  background-color: rgba(255, 255, 255, 1);
+  padding: 10px;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Urbanist";
+  font-weight: bold;
+}
+
+
+/* --- RESPONSIVE STYLES FOR MOBILE --- */
+@media (max-width: 768px) {
+  .new-lightbox .new-lightbox-content {
+    padding: 10px;
+    gap: 10px;
+    max-height: 95vh;
+  }
+
+  /* Stack the main grid items vertically on mobile */
+  .new-lightbox .image-grid-container {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Stack the bottom captions vertically on mobile */
+  .new-lightbox .captions-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .new-lightbox .caption-top { font-size: 1.1em; padding: 8px; }
+  .new-lightbox .captions-bottom > div { font-size: 0.85em; }
+  .new-lightbox .new-close-button { font-size: 35px; top: 5px; right: 10px; }
+}
