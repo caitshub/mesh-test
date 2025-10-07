@@ -227,6 +227,7 @@
     border: 1px solid #ccc; 
     border-width: 1px 0 0 1px; 
     aspect-ratio: 1.5 / 1; 
+    transition: background-color 0.2s ease-in-out;
   }
   
   .grid-cell.row-label {
@@ -237,9 +238,31 @@
   .grid-cell.col-label { font-weight: bold; }
   .grid-cell.col-label span { transform: rotate(-45deg); }
   .grid-cell.empty { background-color: transparent; border-color: transparent; }
-  .data-cell { cursor: pointer; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; position: relative; z-index: 1; }
-  .data-cell:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); z-index: 2; }
-  .grid-cell.highlight { background-color: #e0f3ff; }
+  
+  /* --- Cell Interactivity Styles --- */
+  .data-cell {
+      position: relative;
+      z-index: 1;
+  }
+  
+  .data-cell:not(.not-interactive) {
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+
+  .data-cell:not(.not-interactive):hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 2;
+  }
+  
+  .not-interactive {
+      cursor: default;
+  }
+
+  .grid-cell.header-hover {
+      background-color: #e0f3ff; /* Highlight color for headers */
+  }
 
   /* --- GRADIENT BAR (Desktop) --- */
   .gradient-bar { 
@@ -312,18 +335,37 @@
   }
 </style>
 <script>
-    // This function sets up all the lightbox's internal parts and returns
-    // the function that can be used to open it.
-    function setupLightbox() {
+    // Data for each lightbox popup. Only cells with an entry here will be interactive.
+    const lightboxData = {
+        'cell-HVC-MSN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/be7d2191-78e3-47d5-8587-7ec8da2d88e0/250825_hvc_full_100%C2%B5m_v2.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/23faabb8-2701-4a0d-a256-f989c23def3e/250825_hvc_msn_syn_1%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/7b99fc6b-3bae-4d94-9928-7996f615a250/250825_XY_9920_5976_10514_hvc_msn_syn.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/161707bf-9eeb-4307-a86d-ba9faf073959/250825_msn_full_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'HVC -> MSN: Detailed Synaptic Connection',
+            captionBottomLeft: 'Presynaptic Neuron',
+            captionBottomMiddle: 'This connection is vital for motor sequence learning. The images show morphological details from different microscopy techniques.',
+            captionBottomRight: 'Postsynaptic Dendrite'
+        },
+        'cell-LMAN-MSN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'
+        },
+        // Add all other interactive cell data here.
+        // If a cell's 'data-target' is NOT in this object, it will be non-interactive.
+    };
+
+    function setupLightbox(data) {
         const lightboxModal = document.querySelector('.new-lightbox');
         if (!lightboxModal || lightboxModal.dataset.lightboxInitialized) {
-            // If the lightbox doesn't exist or is already set up, stop.
-            // If it's already set up, just return the existing open function.
             return window.openLightboxFunction || null;
         }
         lightboxModal.dataset.lightboxInitialized = 'true';
 
-        // Find all the lightbox elements
         const closeButton = lightboxModal.querySelector('.new-close-button');
         const img1 = lightboxModal.querySelector('#lightbox-img-1');
         const img2 = lightboxModal.querySelector('#lightbox-img-2');
@@ -334,38 +376,18 @@
         const captionBottomMiddleEl = lightboxModal.querySelector('.caption-bottom-middle');
         const captionBottomRightEl = lightboxModal.querySelector('.caption-bottom-right');
 
-        // Data for each lightbox popup
-        const lightboxData = {
-            'cell-HVC-MSN': {img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/be7d2191-78e3-47d5-8587-7ec8da2d88e0/250825_hvc_full_100%C2%B5m_v2.png?content-type=image%2Fpng',
-                    img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/23faabb8-2701-4a0d-a256-f989c23def3e/250825_hvc_msn_syn_1%C2%B5m.png?content-type=image%2Fpng',
-                    img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/7b99fc6b-3bae-4d94-9928-7996f615a250/250825_XY_9920_5976_10514_hvc_msn_syn.png?content-type=image%2Fpng',
-                    img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/161707bf-9eeb-4307-a86d-ba9faf073959/250825_msn_full_100%C2%B5m.png?content-type=image%2Fpng',
-                    captionTop: 'HVC -> MSN: Detailed Synaptic Connection',
-                    captionBottomLeft: 'Presynaptic Neuron',
-                    captionBottomMiddle: 'This connection is vital for motor sequence learning. The images show morphological details from different microscopy techniques.',
-                    captionBottomRight: 'Postsynaptic Dendrite' },
-            'cell-LMAN-MSN': {img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
-                    img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
-                    img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
-                    img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
-                    captionTop: 'LMAN -> MSN Connection',
-                    captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.'},
-            // Add all other cell data here
-        };
-
-        // This is the function that will be called to open the lightbox
         const openLightbox = function(target) {
-            const data = lightboxData[target];
-            if (data) {
-                if (img1) img1.src = data.img1 || '';
-                if (img2) img2.src = data.img2 || '';
-                if (img3) img3.src = data.img3 || '';
-                if (img4) img4.src = data.img4 || '';
+            const cellData = data[target];
+            if (cellData) {
+                if (img1) img1.src = cellData.img1 || '';
+                if (img2) img2.src = cellData.img2 || '';
+                if (img3) img3.src = cellData.img3 || '';
+                if (img4) img4.src = cellData.img4 || '';
                 const captions = [
-                    [captionTopEl, data.captionTop],
-                    [captionBottomLeftEl, data.captionBottomLeft],
-                    [captionBottomMiddleEl, data.captionBottomMiddle],
-                    [captionBottomRightEl, data.captionBottomRight]
+                    [captionTopEl, cellData.captionTop],
+                    [captionBottomLeftEl, cellData.captionBottomLeft],
+                    [captionBottomMiddleEl, cellData.captionBottomMiddle],
+                    [captionBottomRightEl, cellData.captionBottomRight]
                 ];
                 captions.forEach(([element, text]) => {
                     if (element) {
@@ -379,7 +401,6 @@
 
         const closeLightbox = () => lightboxModal.classList.remove('lightbox-visible');
 
-        // Attach closing event listeners
         if (closeButton) closeButton.addEventListener('click', closeLightbox);
         lightboxModal.addEventListener('click', (e) => {
             if (e.target === lightboxModal) closeLightbox();
@@ -388,44 +409,59 @@
             if (e.key === 'Escape') closeLightbox();
         });
 
-        // Store the open function on the window object so it can be retrieved later
         window.openLightboxFunction = openLightbox;
-        
-        // ** THE KEY CHANGE: **
-        // Return the 'openLightbox' function so other parts of the script can use it.
         return openLightbox;
     }
 
-    // This function now ACCEPTS the 'openLightbox' function as an argument.
-    function setupGrid(openLightboxFunction) {
-        if (!openLightboxFunction) return; // Don't run if the lightbox isn't ready
+    function setupGrid(openLightboxFunction, data) {
+        if (!openLightboxFunction) return;
 
         document.querySelectorAll('.matrix-component:not([data-grid-initialized])').forEach(matrix => {
             matrix.dataset.gridInitialized = 'true';
-            const allLabels = matrix.querySelectorAll('.row-label, .col-label');
 
             matrix.querySelectorAll('.data-cell').forEach(cell => {
-                // Hover effects
-                cell.addEventListener('mouseover', function() { /* ... hover code ... */ });
-                cell.addEventListener('mouseout', () => { /* ... hover code ... */ });
+                const target = cell.getAttribute('data-target');
+                
+                // Check if this cell should be interactive by seeing if its target exists in our data object.
+                if (data && data[target]) {
+                    // --- This cell IS interactive ---
+                    
+                    // Add hover listeners for header highlighting
+                    cell.addEventListener('mouseover', function() {
+                        const row = this.getAttribute('data-row');
+                        const col = this.getAttribute('data-col');
+                        const rowLabel = matrix.querySelector(`.row-label[data-row="${row}"]`);
+                        const colLabel = matrix.querySelector(`.col-label[data-col="${col}"]`);
+                        if (rowLabel) rowLabel.classList.add('header-hover');
+                        if (colLabel) colLabel.classList.add('header-hover');
+                    });
 
-                // Attach the click listener
-                cell.addEventListener('click', function() {
-                    const target = this.getAttribute('data-target');
-                    // Use the function that was passed in!
-                    openLightboxFunction(target);
-                });
+                    cell.addEventListener('mouseout', function() {
+                        const row = this.getAttribute('data-row');
+                        const col = this.getAttribute('data-col');
+                        const rowLabel = matrix.querySelector(`.row-label[data-row="${row}"]`);
+                        const colLabel = matrix.querySelector(`.col-label[data-col="${col}"]`);
+                        if (rowLabel) rowLabel.classList.remove('header-hover');
+                        if (colLabel) colLabel.classList.remove('header-hover');
+                    });
+
+                    // Add click listener to open lightbox
+                    cell.addEventListener('click', function() {
+                        openLightboxFunction(target);
+                    });
+
+                } else {
+                    // --- This cell IS NOT interactive ---
+                    cell.classList.add('not-interactive');
+                }
             });
         });
     }
 
-    // The main function that coordinates everything
     function initializeAll() {
-        // First, set up the lightbox and get the function to open it.
-        const openFunc = setupLightbox();
-        // Then, pass that function into the grid setup.
+        const openFunc = setupLightbox(lightboxData);
         if (openFunc) {
-            setupGrid(openFunc);
+            setupGrid(openFunc, lightboxData);
         }
     }
 
