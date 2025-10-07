@@ -1,0 +1,165 @@
+/* --- DEFAULT LIGHTBOX STATE (HIDDEN) --- */
+.new-lightbox {
+display: flex;
+position: fixed;
+z-index: 999999;
+left: 0; top: 0;
+width: 100%; height: 100%;
+background-color: rgba(0, 0, 0, 0.85);
+align-items: center;
+justify-content: center;
+padding: 2vw;
+box-sizing: border-box;
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+/* --- VISIBLE STATE (TOGGLED WITH JS) --- */
+.new-lightbox.lightbox-visible {
+opacity: 1;
+visibility: visible;
+}
+
+/* --- MAIN CONTENT WRAPPER --- /
+.new-lightbox .new-lightbox-content {
+width: 100%;
+height: 100%;
+max-width: 1200px;
+max-height: 800px;
+display: grid;
+/ Defines a header, a main content area, and a footer */
+grid-template-rows: auto 1fr auto;
+gap: 15px;
+position: relative;
+background-color: rgba(231, 231, 231, 1);
+padding: 20px;
+box-sizing: border-box;
+}
+
+/* --- CLOSE BUTTON --- */
+.new-lightbox .new-close-button {
+position: absolute;
+top: 0px; right: 0px;
+color: #fff;
+font-size: 40px;
+font-weight: bold;
+cursor: pointer;
+z-index: 1100;
+}
+
+/* --- ROW 1: TOP CAPTION --- */
+.new-lightbox .caption-top {
+grid-row: 1;
+background-color: rgba(255, 255, 255, 1);
+padding: 10px;
+color: #000;
+text-align: center;
+display: flex;
+align-items: center;
+justify-content: center;
+font-family: "Urbanist";
+font-weight: bold;
+font-size: 1.3em;
+}
+
+/* --- ROW 2: IMAGE GRID CONTAINER --- /
+.new-lightbox .image-grid-container {
+grid-row: 2;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 15px;
+/ THE KEY FIX FOR DESKTOP:
+This explicitly tells the container to use 100% of the height
+allocated by the parent's '1fr' row, giving the child images
+a valid context for their own 'height: 100%'. /
+height: 100%;
+/ These prevent overflow bugs with nested grids */
+min-height: 0;
+overflow: hidden;
+}
+
+/* --- WRAPPER FOR THE TWO STACKED IMAGES --- /
+.new-lightbox .img-wrapper-stacked {
+display: grid;
+grid-template-rows: 1fr 1fr;
+gap: 15px;
+min-height: 0; / Prevents overflow */
+}
+
+/* --- STYLING FOR ALL INDIVIDUAL IMAGE WRAPPERS --- /
+.new-lightbox .img-wrapper {
+background-color: rgba(0,0,0,0.5);
+overflow: hidden; / Essential for the zoom effect */
+min-height: 0;
+min-width: 0;
+}
+
+/* --- STYLING FOR THE IMAGES THEMSELVES --- /
+.new-lightbox .img-wrapper img {
+width: 100%;
+height: 100%;
+object-fit: contain; / Prevents image distortion */
+}
+
+/* --- ROW 3: BOTTOM CAPTIONS --- */
+.new-lightbox .captions-bottom {
+grid-row: 3;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 15px;
+}
+
+.new-lightbox .captions-bottom > div {
+background-color: rgba(255, 255, 255, 1);
+padding: 10px;
+color: #000;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+font-family: "Urbanist";
+font-weight: bold;
+}
+
+/* --- RESPONSIVE STYLES FOR MOBILE --- */
+@media (max-width: 768px) {
+.new-lightbox .new-lightbox-content {
+padding: 10px;
+gap: 10px;
+max-height: 95vh;
+}
+
+/* Stack the main grid items vertically on mobile /
+.new-lightbox .image-grid-container {
+grid-template-columns: 1fr;
+grid-template-rows: auto;
+/ We don't need the explicit 100% height here as the layout is simpler */
+height: auto;
+}
+
+.new-lightbox .img-wrapper-stacked {
+max-height: 40vh;
+}
+
+/* Stack the bottom captions vertically on mobile */
+.new-lightbox .captions-bottom {
+grid-template-columns: 1fr;
+}
+
+/* Typography & spacing tweaks for mobile */
+.new-lightbox .caption-top {
+font-size: 1.1em;
+padding: 8px;
+}
+
+.new-lightbox .captions-bottom > div {
+font-size: 0.85em;
+}
+
+.new-lightbox .new-close-button {
+font-size: 35px;
+top: 5px;
+right: 10px;
+}
+}
