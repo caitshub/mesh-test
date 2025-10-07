@@ -385,4 +385,168 @@
   }
   .new-lightbox .captions-bottom > div {
     background-color: rgba(255, 255, 255, 1);
-    padding:
+    padding: 10px;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: "Urbanist";
+    font-weight: bold;
+  }
+
+  /* --- LIGHTBOX: RESPONSIVE STYLES FOR MOBILE --- */
+  @media (max-width: 768px) {
+    .new-lightbox .new-lightbox-content { padding: 10px; gap: 10px; max-height: 95vh; }
+    .new-lightbox .image-grid-container { grid-template-columns: 1fr; }
+    .new-lightbox .captions-bottom { grid-template-columns: 1fr; }
+    .new-lightbox .caption-top { font-size: 1.1em; padding: 8px; }
+    .new-lightbox .captions-bottom > div { font-size: 0.85em; }
+    .new-lightbox .new-close-button { font-size: 35px; top: 5px; right: 10px; }
+  }
+</style>
+
+
+<!-- PART 4: JAVASCRIPT for both Matrix and Lightbox -->
+<script>
+    // Data for each lightbox popup. Only cells with an entry here will be interactive.
+    const lightboxData = {
+        'cell-HVC-MSN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/be7d2191-78e3-47d5-8587-7ec8da2d88e0/250825_hvc_full_100%C2%B5m_v2.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/23faabb8-2701-4a0d-a256-f989c23def3e/250825_hvc_msn_syn_1%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/7b99fc6b-3bae-4d94-9928-7996f615a250/250825_XY_9920_5976_10514_hvc_msn_syn.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/161707bf-9eeb-4307-a86d-ba9faf073959/250825_msn_full_100%C2%B5m.png?content-type=image%2Fpng',
+            overlay1: 'Full presynaptic axon morphology.',
+            overlay2: '3D reconstruction of synaptic contact.',
+            overlay3: 'Electron microscopy of the synapse.',
+            overlay4: 'Full postsynaptic dendrite morphology.',
+            captionTop: 'HVC -> MSN: Detailed Synaptic Connection',
+            captionBottomLeft: 'Presynaptic Neuron',
+            captionBottomMiddle: 'This connection is vital for motor sequence learning. The images show morphological details from different microscopy techniques.',
+            captionBottomRight: 'Postsynaptic Dendrite'
+        },
+        'cell-LMAN-MSN': {
+            img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img2: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img3: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            img4: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/114dc0d6-be6e-48b6-8ae4-59c438c63b70/231121_stn_gpi_100%C2%B5m.png?content-type=image%2Fpng',
+            overlay1: 'Overlay caption for Image 1.',
+            overlay2: 'Overlay caption for Image 2.',
+            overlay3: 'Overlay caption for Image 3.',
+            overlay4: 'Overlay caption for Image 4.',
+            captionTop: 'LMAN -> MSN Connection',
+            captionBottomLeft: 'Presynaptic',
+            captionBottomMiddle: 'Information specific to the LMAN to MSN pathway.',
+            captionBottomRight: 'Postsynaptic'
+        },
+    };
+
+    function setupLightbox(data) {
+        const lightboxModal = document.querySelector('.new-lightbox');
+        if (!lightboxModal || lightboxModal.dataset.lightboxInitialized) {
+            return window.openLightboxFunction || null;
+        }
+        lightboxModal.dataset.lightboxInitialized = 'true';
+
+        const openLightbox = function(target) {
+            const cellData = data[target];
+            if (cellData) {
+                const img1 = lightboxModal.querySelector('#lightbox-img-1');
+                const img2 = lightboxModal.querySelector('#lightbox-img-2');
+                const img3 = lightboxModal.querySelector('#lightbox-img-3');
+                const img4 = lightboxModal.querySelector('#lightbox-img-4');
+                const captionTopEl = lightboxModal.querySelector('.caption-top');
+                const captionBottomLeftEl = lightboxModal.querySelector('.caption-bottom-left');
+                const captionBottomMiddleEl = lightboxModal.querySelector('.caption-bottom-middle');
+                const captionBottomRightEl = lightboxModal.querySelector('.caption-bottom-right');
+                const overlay1 = lightboxModal.querySelector('#lightbox-img-wrapper-1 .caption-overlay');
+                const overlay2 = lightboxModal.querySelector('#lightbox-img-wrapper-2 .caption-overlay');
+                const overlay3 = lightboxModal.querySelector('#lightbox-img-wrapper-3 .caption-overlay');
+                const overlay4 = lightboxModal.querySelector('#lightbox-img-wrapper-4 .caption-overlay');
+                
+                if (img1) img1.src = cellData.img1 || '';
+                if (img2) img2.src = cellData.img2 || '';
+                if (img3) img3.src = cellData.img3 || '';
+                if (img4) img4.src = cellData.img4 || '';
+                
+                const captions = [
+                    [captionTopEl, cellData.captionTop],
+                    [captionBottomLeftEl, cellData.captionBottomLeft],
+                    [captionBottomMiddleEl, cellData.captionBottomMiddle],
+                    [captionBottomRightEl, cellData.captionBottomRight]
+                ];
+                captions.forEach(([element, text]) => {
+                    if (element) {
+                        element.style.display = text ? 'flex' : 'none';
+                        element.textContent = text || '';
+                    }
+                });
+                const overlays = [
+                    [overlay1, cellData.overlay1],
+                    [overlay2, cellData.overlay2],
+                    [overlay3, cellData.overlay3],
+                    [overlay4, cellData.overlay4]
+                ];
+                overlays.forEach(([element, text]) => {
+                    if (element) {
+                        element.textContent = text || '';
+                    }
+                });
+                
+                lightboxModal.classList.add('lightbox-visible');
+            }
+        };
+
+        const closeLightbox = () => lightboxModal.classList.remove('lightbox-visible');
+        
+        const closeButton = lightboxModal.querySelector('.new-close-button');
+        if (closeButton) closeButton.addEventListener('click', closeLightbox);
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) closeLightbox();
+        });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        window.openLightboxFunction = openLightbox;
+        return openLightbox;
+    }
+
+    function setupGrid(openLightboxFunction, data) {
+        if (!openLightboxFunction) return;
+        document.querySelectorAll('.matrix-component:not([data-grid-initialized])').forEach(matrix => {
+            matrix.dataset.gridInitialized = 'true';
+            matrix.querySelectorAll('.data-cell').forEach(cell => {
+                const target = cell.getAttribute('data-target');
+                if (data && data[target]) {
+                    cell.addEventListener('mouseover', function() {
+                        const row = this.getAttribute('data-row');
+                        const col = this.getAttribute('data-col');
+                        matrix.querySelector(`.row-label[data-row="${row}"]`)?.classList.add('header-hover');
+                        matrix.querySelector(`.col-label[data-col="${col}"]`)?.classList.add('header-hover');
+                    });
+                    cell.addEventListener('mouseout', function() {
+                        const row = this.getAttribute('data-row');
+                        const col = this.getAttribute('data-col');
+                        matrix.querySelector(`.row-label[data-row="${row}"]`)?.classList.remove('header-hover');
+                        matrix.querySelector(`.col-label[data-col="${col}"]`)?.classList.remove('header-hover');
+                    });
+                    cell.addEventListener('click', () => openLightboxFunction(target));
+                } else {
+                    cell.classList.add('not-interactive');
+                }
+            });
+        });
+    }
+
+    function initializeAll() {
+        const openFunc = setupLightbox(lightboxData);
+        if (openFunc) {
+            setupGrid(openFunc, lightboxData);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', initializeAll);
+    window.setInterval(initializeAll, 500);
+</script>
+
+<!-- END: Copy everything above this line -->
