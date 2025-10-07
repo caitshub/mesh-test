@@ -1,4 +1,6 @@
-<!-- Interactive Matrix and Lightbox Code (Mobile Interactivity Disabled) -->
+<!-- Interactive Matrix and Lightbox Code (Universal Header Highlighting) -->
+<!-- START: Copy everything below this line -->
+
 <!-- PART 1: HTML for the Interactive Matrix -->
 <div class="matrix-component">
     <h1 class="matrix-title-main">globally normalised [%]</h1>
@@ -259,10 +261,9 @@
     .gradient-bar { width: 100%; height: 20px; background: linear-gradient(to left, #ffffff, #808080, #000000); }
     .gradient-labels { flex-direction: row; justify-content: space-between; width: 100%; height: auto; margin-left: 0; margin-top: 5px; font-size: 0.7rem; }
     
-    /* --- NEW: Disable Matrix Interactivity on Mobile --- */
     .matrix-component .data-cell:not(.not-interactive) {
       cursor: default;
-      pointer-events: none; /* This is the key: it disables all click and hover events */
+      pointer-events: none;
     }
   }
 
@@ -409,7 +410,7 @@
 
 <!-- PART 4: JAVASCRIPT for both Matrix and Lightbox -->
 <script>
-    // Data for each lightbox popup. Only cells with an entry here will be interactive.
+    // Data for each lightbox popup.
     const lightboxData = {
         'cell-HVC-MSN': {
             img1: 'https://images.squarespace-cdn.com/content/6877b03b11b9de015acd8b39/be7d2191-78e3-47d5-8587-7ec8da2d88e0/250825_hvc_full_100%C2%B5m_v2.png?content-type=image%2Fpng',
@@ -518,23 +519,32 @@
             matrix.dataset.gridInitialized = 'true';
             matrix.querySelectorAll('.data-cell').forEach(cell => {
                 const target = cell.getAttribute('data-target');
+                
+                // --- MODIFICATION START ---
+                // Apply hover listeners to ALL data cells for header highlighting
+                cell.addEventListener('mouseover', function() {
+                    const row = this.getAttribute('data-row');
+                    const col = this.getAttribute('data-col');
+                    matrix.querySelector(`.row-label[data-row="${row}"]`)?.classList.add('header-hover');
+                    matrix.querySelector(`.col-label[data-col="${col}"]`)?.classList.add('header-hover');
+                });
+
+                cell.addEventListener('mouseout', function() {
+                    const row = this.getAttribute('data-row');
+                    const col = this.getAttribute('data-col');
+                    matrix.querySelector(`.row-label[data-row="${row}"]`)?.classList.remove('header-hover');
+                    matrix.querySelector(`.col-label[data-col="${col}"]`)?.classList.remove('header-hover');
+                });
+
+                // Now, conditionally add click listeners and styling
                 if (data && data[target]) {
-                    cell.addEventListener('mouseover', function() {
-                        const row = this.getAttribute('data-row');
-                        const col = this.getAttribute('data-col');
-                        matrix.querySelector(`.row-label[data-row="${row}"]`)?.classList.add('header-hover');
-                        matrix.querySelector(`.col-label[data-col="${col}"]`)?.classList.add('header-hover');
-                    });
-                    cell.addEventListener('mouseout', function() {
-                        const row = this.getAttribute('data-row');
-                        const col = this.getAttribute('data-col');
-                        matrix.querySelector(`.row-label[data-row="${row}"]`)?.classList.remove('header-hover');
-                        matrix.querySelector(`.col-label[data-col="${col}"]`)?.classList.remove('header-hover');
-                    });
+                    // This is an INTERACTIVE cell, so add the click listener
                     cell.addEventListener('click', () => openLightboxFunction(target));
                 } else {
+                    // This is a NON-INTERACTIVE cell, so add the corresponding class
                     cell.classList.add('not-interactive');
                 }
+                // --- MODIFICATION END ---
             });
         });
     }
