@@ -1,0 +1,220 @@
+<!-- NEW, MORE ROBUST LIGHTBOX HTML STRUCTURE -->
+<div class="new-lightbox">
+  <div class="new-lightbox-content">
+    <span class="new-close-button">&times;</span>
+    
+    <!-- Row 1: Top Caption -->
+    <div class="caption-top"></div>
+    
+    <!-- Row 2: Image Grid -->
+    <div class="image-grid-container">
+      
+      <!-- Image 1 Wrapper -->
+      <div class="img-wrapper">
+        <img src="" alt="Main image" id="lightbox-img-1" />
+      </div>
+
+      <!-- Wrapper for the stacked column -->
+      <div class="img-wrapper-stacked">
+        <!-- Image 2 Wrapper -->
+        <div class="img-wrapper">
+          <img src="" alt="Stacked image top" id="lightbox-img-2" />
+        </div>
+        <!-- Image 3 Wrapper -->
+        <div class="img-wrapper">
+          <img src="" alt="Stacked image bottom" id="lightbox-img-3" />
+        </div>
+      </div>
+
+      <!-- Image 4 Wrapper -->
+      <div class="img-wrapper">
+        <img src="" alt="Side image" id="lightbox-img-4" />
+      </div>
+
+    </div>
+    
+    <!-- Row 3: Bottom Captions -->
+    <div class="captions-bottom">
+      <div class="caption-bottom-left"></div>
+      <div class="caption-bottom-middle"></div>
+      <div class="caption-bottom-right"></div>
+    </div>
+  </div>
+</div>
+
+<!-- slider plugin by will myers for 3d models on mobile -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+// Slider Loader
+function loadSlider(sliderSettings) {
+  // General Settings
+  let sliderEl = sliderSettings.sliderEl,
+      editingMode = sliderSettings.editingMode,
+      numSlides = sliderSettings.numSlides,
+      sliderHeight = sliderSettings.sliderHeight,
+      // Slider Features
+      autoHeight = sliderSettings.autoHeight,
+      loop = sliderSettings.loop,
+      // Arrows
+      arrows = sliderSettings.arrows,
+      arrowColor = sliderSettings.arrowColor,
+      arrowBgColor = sliderSettings.arrowBgColor,
+      arrowPosition = sliderSettings.arrowPosition;
+  // Slider Editing Mode - Turns off slider in SS editor
+  if (window.location.href.indexOf("config") > -1 && editingMode) {
+    return;
+  }
+  var sectionIDs = [];
+  var slide,
+    slider,
+    slides,
+    allSections = document.querySelectorAll('section'),
+    firstSlide = sliderEl.closest('section');
+  // Set slider height
+  if (sliderHeight) {
+    firstSlide.style.minHeight = sliderHeight;
+  }
+  // get all section IDs
+  for (var i = 0; i < allSections.length; i++) {
+    sectionIDs.push(allSections[i].getAttribute('data-section-id'));
+  }
+  // get index of first slide
+  var firstSlideIndex = sectionIDs.indexOf(
+    firstSlide.getAttribute('data-section-id')
+  );
+  // build slider
+  for (var i = 0; i < numSlides; i++) {
+    if (i === 0) {
+      slide = firstSlide;
+      slide.classList.add('swiper-slide');
+      slider = slide.parentElement;
+      slider.classList.add('swiper-container');
+      slides = slider.children[firstSlideIndex];
+      slides.classList.add('swiper-wrapper');
+    } else {
+      slide = allSections[firstSlideIndex + i];
+      slide.classList.add('swiper-slide');
+      slides.appendChild(slide);
+    }
+  }
+  // Add Arrows
+  if (arrows) {
+    let arrowEl =
+      '<div class="swiper-button-prev ' +
+      arrowPosition +
+      '"></div><div class="swiper-button-next ' +
+      arrowPosition +
+      '"></div>';
+    slider.insertAdjacentHTML('beforeend', arrowEl);
+  }
+  // Set Arrow Colors
+  slider.style.setProperty('--swiper-theme-color', arrowColor);
+  slider.style.setProperty('--arrow-bg', arrowBgColor);
+  // initialize slider
+  var mySwiper = new Swiper(slider, {
+    // Optional parameters
+    direction: 'horizontal',
+    loop: loop,
+    autoHeight: autoHeight,
+    // Navigation arrows
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    }
+  });
+}
+</script>
+<style>
+/* Slider Arrow Styling */
+.swiper-button-prev, .swiper-button-next {background-color: var(--arrow-bg); padding: 25px; border-radius: 50%;}
+.swiper-button-prev.middle, .swiper-button-next.middle{top:50%;}
+.swiper-button-prev.top, .swiper-button-next.top{top:1.5em;}
+.swiper-button-prev.bottom, .swiper-button-next.bottom{top:unset; bottom: .5em}
+</style>
+
+<!-- cell types overview filter script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  // This should be the same as before.
+  // VITAL: REPLACE '/blog' with the URL Slug of YOUR blog collection.
+  const collectionUrl = '/blog?format=json';
+
+  const filterLinks = document.querySelectorAll('.filter-links a');
+  const summaryItems = document.querySelectorAll('.summary-item');
+
+  // This function fetches the real blog data and then activates the filters.
+  async function initializeFilters() {
+    try {
+      const response = await fetch(collectionUrl);
+      if (!response.ok) {
+        throw new Error('Network response was not ok for collection URL.');
+      }
+      const data = await response.json();
+      const items = data.items;
+
+      // NEW STRATEGY: Create a map to look up tags by a post's TITLE.
+      // Example: { "MSN": ["paper-a", "paper-c"] }
+      const postTitleTagMap = {};
+      items.forEach(item => {
+        if (item.title && Array.isArray(item.tags)) {
+          // Use the post title as the key
+          postTitleTagMap[item.title] = item.tags;
+        }
+      });
+      
+      // --- DEBUGGING ---
+      // Check your browser's console to see this new map.
+      console.log("Post-Title-to-Tag Map successfully created:", postTitleTagMap);
+      // -----------------
+
+      // Now that we have the correct data, attach the click events.
+      filterLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+
+          const selectedFilter = this.getAttribute('data-filter');
+          console.log("Filter clicked:", selectedFilter);
+
+          filterLinks.forEach(l => l.classList.remove('active'));
+          this.classList.add('active');
+
+          summaryItems.forEach(function(summaryItem) {
+            // NEW STRATEGY: Get the title from the summary item's title link.
+            const titleElement = summaryItem.querySelector('a.summary-title-link');
+            if (!titleElement) return;
+
+            // .trim() removes any accidental whitespace
+            const postTitle = titleElement.textContent.trim();
+            
+            // Get the tags for this post from our new title-based map.
+            const postTags = postTitleTagMap[postTitle] || [];
+
+            if (selectedFilter === 'all') {
+              summaryItem.classList.remove('dimmed');
+            } else {
+              const hasTag = postTags.includes(selectedFilter);
+
+              if (hasTag) {
+                summaryItem.classList.remove('dimmed');
+              } else {
+                summaryItem.classList.add('dimmed');
+              }
+            }
+          });
+        });
+      });
+
+    } catch (error) {
+      console.error('Error initializing filters:', error);
+    }
+  }
+
+  // Only run the script if there are filters and summary items on the page.
+  if (filterLinks.length > 0 && summaryItems.length > 0) {
+    initializeFilters();
+  }
+});
+</script>
