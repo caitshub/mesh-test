@@ -1,0 +1,50 @@
+<!-- FINAL, CORRECTED SCRIPT - Place in Footer Code Injection -->
+<script type="module">
+
+  const setupModelViewers = () => {
+    const mobileBreakpoint = 768;
+    const isMobile = window.innerWidth < mobileBreakpoint;
+    const allViewers = document.querySelectorAll('model-viewer.model'); // Target only our styled models
+
+    allViewers.forEach(viewer => {
+      const modelUrl = viewer.getAttribute('src');
+      if (!modelUrl) return;
+
+      const button = viewer.querySelector('.poster-button');
+      if (!button) return;
+
+      // --- Universal First Step: Prevent auto-loading on page load ---
+      viewer.removeAttribute('src');
+
+      if (isMobile) {
+        // --- MOBILE LOGIC: User-activated loading ---
+        button.addEventListener('click', () => {
+          viewer.setAttribute('src', modelUrl); // Load the model
+          viewer.dismissPoster(); // Hide the poster and button
+        }, { once: true });
+
+      } else {
+        // --- DESKTOP LOGIC: Hide button and lazy-load on scroll ---
+        button.classList.add('hide');
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              if (!viewer.hasAttribute('src')) {
+                viewer.setAttribute('src', modelUrl);
+              }
+            } else {
+              viewer.removeAttribute('src');
+            }
+          });
+        }, { rootMargin: '300px 0px' });
+        
+        observer.observe(viewer);
+      }
+    });
+  };
+
+  // Wait for the entire page to load to avoid race conditions
+  window.addEventListener('load', setupModelViewers);
+
+</script>
