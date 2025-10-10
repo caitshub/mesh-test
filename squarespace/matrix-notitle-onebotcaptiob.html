@@ -3,9 +3,9 @@
 
 <!-- PART 1: HTML for the Interactive Matrix -->
 <div class="matrix-component">
-    <h1 class="matrix-title-main">globally normalised [%]</h1>
     <h2 class="matrix-title-postsynaptic">postsynaptic cell type</h2>
     <div class="matrix-title-presynaptic"><span>presynaptic cell type</span></div>
+    <h1 class="matrix-title-main">globally normalised [%]</h1>
     <div class="matrix-grid-container">
         <div class="matrix-grid">
             <div class="grid-cell empty"></div>
@@ -190,22 +190,23 @@
     width: 100%;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 1em;
+    padding: 1em 1em 0 1em;
     box-sizing: border-box;
     display: grid;
     grid-template-areas:
-      "title-main title-main title-main"
       ". title-post ."
-      "title-pre grid gradient";
+      "title-pre grid gradient"
+      "title-main title-main title-main"; 
     grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto 1fr auto; 
     gap: 0 15px;
     align-items: center;
   }
-  .matrix-title-main { grid-area: title-main; text-align: center; font-weight: bold; font-size: 2em; margin-bottom: 0.5em; }
+  
   .matrix-title-postsynaptic { grid-area: title-post; text-align: center; font-weight: bold; font-size: 1.2em; margin-bottom: 0.5em; color: #333; }
   .matrix-title-presynaptic { grid-area: title-pre; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; }
   .matrix-title-presynaptic span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.2em; }
+  .matrix-title-main { grid-area: title-main; text-align: center; font-weight: bold; font-size: 2em; margin-top: 1em; }
   .matrix-grid-container { grid-area: grid; }
   .gradient-bar-container { grid-area: gradient; display: flex; flex-direction: row; align-self: stretch; }
 
@@ -247,7 +248,7 @@
   /* --- MATRIX: RESPONSIVE STYLES FOR MOBILE --- */
   @media (max-width: 768px) {
     .matrix-component {
-      grid-template-areas: "title-main" "title-post" "grid" "gradient";
+      grid-template-areas: "title-post" "grid" "gradient" "title-main";
       grid-template-columns: 1fr;
       grid-template-rows: auto auto auto auto;
       gap: 1em 0;
